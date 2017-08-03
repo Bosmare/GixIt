@@ -1,5 +1,4 @@
 import React from 'react'
-import {StyleSheet, View} from 'react-native'
 
 import connect from '../Streams/connect'
 
@@ -14,22 +13,11 @@ const Containers = {
 const ViewRenderer = ({view}) => {
 	const Container = Containers[view]
 
-	if (!view || !Containers[view]) return null
-
-	return(
-		<View style={styles.view}>
-			<Container />
-		</View>
-	)
-}
-
-const styles = StyleSheet.create({
-	view: {
-		paddingTop: 20,
-		paddingBottom: 20,
-		paddingLeft: 10,
-		paddingRight: 10
+	if (!view || !Containers[view]) {
+		throw 'view: ' + view + ' is not defined'
 	}
-})
+
+	return <Container />
+}
 
 export default connect('view')(ViewRenderer)

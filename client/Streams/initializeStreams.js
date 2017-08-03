@@ -8,8 +8,7 @@ const initializeStreams = ({actions, properties, connections}) => {
 		emitters = {},
 		props = {}
 
-
-	const plug = R.pipe(
+	const plug = (streamMap = {}) => R.pipe(
 		R.toPairs,
 		R.forEach(([name, stream]) => {
 			if (!streams[name]) {
@@ -17,13 +16,13 @@ const initializeStreams = ({actions, properties, connections}) => {
 			}
 			streams[name].plug(stream)
 		}),
-	)
+	) (streamMap)
 
 	actions.forEach(name => {
 		let emitter
 		const stream = K.stream(_emitter => {
 			emitter = _emitter
-		}).spy(name)
+		}).spy('action stream event - ' + name)
 
 		stream.observe(() => {})
 
@@ -35,26 +34,33 @@ const initializeStreams = ({actions, properties, connections}) => {
 		plug(connection(streams))
 	})
 
-	//create properties, add spies
 	R.pipe(
 		R.toPairs,
 		R.forEach(([name, stream]) => {
 			if (R.keys(properties).includes(name)) {
-				props[name] = stream.toProperty(() => properties[name]).spy(name)
+				props[name] = stream
+					.toProperty(() => {
+						const initial = properties[name]
+						console.log('property stream initialized - ', name, '=', initial)
+						return initial
+					})
+					.spy('property stream update - ' + name)
 				props[name].observe(() => {})
 			}
-			else {
-				stream.spy(name)
+			else if (!actions.includes(name)){
+				stream.spy('stream event - ' + name)
 			}
 		})
 	) (streams)
 
-	window.makeActionCreator = name => {
+	console.log(streams)
+
+	window.getActionEmitter = name => {
 		if (!emitters[name]) {
 			throw 'action -' + name + '- does not exist'
 		}
 
-		return emitters[name].value
+		return emitters[name]
 	}
 
 	window.subscribeToProperty = (name, callback) => {

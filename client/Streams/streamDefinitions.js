@@ -1,15 +1,22 @@
-import {createLobbyRequest} from './api'
-import {pickKeys} from './utils'
+import {
+	openMockWS,
+	connectToWS
+} from './api'
+import {
+	pickKeys,
+	keyToType
+} from './utils'
 
-const actions = [
+//names of streams originating from the application
+export const actions = [
 	'createLobby',
-	'changeName',
 	'toggleReady',
-	'addPicture',
-	'navigateBack'
+	'createCards',
+	'toWS'
 ]
 
-const properties = {
+//names of property streams and their initial values
+export const properties = {
 	view: 'menu',
 	lobby_code: null,
 	players: null,
@@ -17,10 +24,12 @@ const properties = {
 	pictures: null,
 }
 
-const connections = [
-	//on createLobby, make request and push results
-	({createLobby}) => ({responses: createLobby.flatMap(createLobbyRequest)}),
-	({responses}) => pickKeys(
+//functions for defining reactive streams
+//take a list of event streams
+export const connections = [
+	() => ({fromWS: openMockWS()}),
+	({createLobby}) => {connectToWS(keyToType({createLobby}))},
+	({fromWS}) => pickKeys(
 		[
 			'lobby_code',
 			'players',
@@ -28,7 +37,7 @@ const connections = [
 			'pictures',
 			'view'		
 		],
-		responses
+		fromWS
 	)
 ]
 

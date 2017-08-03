@@ -3,30 +3,35 @@ import R from 'ramda'
 
 const parse = arg => arg === 0 ? [] : arg.split(' ')
 
-const connect = (inputs, outputs = 0) => Component => (
-	class Connector extends React.Component {
+const connect = (inputs, outputs = 0) => Component => {
+	const
+		ins = parse(inputs),
+		outs = parse(outputs)
+
+	return class Connector extends React.Component {
 
 		constructor(props) {
 			super(props)
 			this.state = {}
 		}
 
-		componentDidMount() {
+		componentWillMount(){
+			this.outs = R.pipe(
+				R.map(name => [name, window.getActionEmitter(name).value]),
+				R.fromPairs
+			) (outs)			
+		}
 
-			this.subscriptions = parse(inputs).map(
+		componentDidMount() {
+			this.subscriptions = ins.map(
 				name => window.subscribeToProperty(
 					name,
-					value => this.setState({[name]: value})
+					value => {
+						this.setState({[name]: value})
+						this.active = true
+					}
 				)
 			)
-
-			this.outs = R.pipe(
-				parse,
-				R.map(name => [name, window.makeActionCreator(name)]),
-				R.fromPairs
-			) (outputs)
-
-			this.forceUpdate()
 		}
 
 		componentWillUnmount() {
@@ -36,10 +41,13 @@ const connect = (inputs, outputs = 0) => Component => (
 		}
 
 		render = () => {
-			console.log(this.state)
-			return <Component {...this.state} {...this.outs} />
+			return (
+				(R.length(ins) === R.length(R.keys(this.state)))
+					? <Component {...this.state} {...this.outs} {...this.props}/>
+					: null
+			)
 		}
 	}
-)
+}
 
 export default connect
