@@ -45,10 +45,10 @@ const Lobby = ({lobby_code, players, pictures, toggleReady, createCards}) => {
 				</View>
 				<View style={styles.footer}>
 					<Button
-						onPress={() => toggleReady()}
+						onPress={() => createCards()}
 						title="Create Cards"
 						color="green"
-						accessibilityLabel="Click to indicate you are ready to start"					
+						accessibilityLabel="Click to create cards"					
 					/>
 					<Button
 						onPress={() => toggleReady()}
